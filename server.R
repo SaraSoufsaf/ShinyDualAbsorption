@@ -21,15 +21,15 @@ shinyServer(function(input, output) {
     
     # Creating a function called PKmodel
     #   It returns a list of concentrations for compartments 1, 2 and 3
-    PKmodel  = function(alag1,alag2){
+    PKmodel  = function(alag1,alag2,ka1,ka2,f1){
         
         t = seq(0, 24,0.1) #sampling times are from 0 to 24h, ever 0.1h
         D = 50 # fictional dose
         
-        ## Typical PK parameters (from doi: 10.1089/cap.2018.0093)
-        TVka1 = 0.182
-        TVka2 = 0.258
-        TVF1 = 0.557
+        ## Typical PK parameters
+        TVka1 = ka1
+        TVka2 = ka2
+        TVF1 = f1/100
         TVlag1 = alag1
         TVlag2 = alag2
         TVV = 816
@@ -70,9 +70,9 @@ shinyServer(function(input, output) {
     # Rendering the plot
     # This section will run everytime the user's input is changed
     output$distPlot <- renderPlot({
-        
+        print(c(input$alag1,input$alag2,input$ka1,input$ka2,input$F1))
         # Computing the concentrations based on the chosen alag1 and alag2
-        Concentrations = PKmodel(input$alag1,input$alag2)
+        Concentrations = PKmodel(input$alag1,input$alag2,input$ka1,input$ka2,input$F1)
         
         # Checking which bioequivalence to display
         showCMT1     = '1' %in% input$showCMT   #Indicator for CMT1
@@ -91,6 +91,7 @@ shinyServer(function(input, output) {
         
         # Drawing the curves for each compartment
         ggplot(dataset,aes(Time,Concentration,color=Compartment))+
+            scale_color_manual(values=c("#999999", "#E69F00", "#56B4E9"))+
             geom_line(size=2)+ #Change the thickness of the line
             xlab('Time (h)')+ #Change the label of the x axis
             theme(axis.text.y = element_blank()) #Hide y axis text because the scale is not considered in this code
